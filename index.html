@@ -15,7 +15,6 @@ html, body {
   background-position: center;
 }
 
-/* Animierter Farbverlauf-Overlay */
 body::before {
   content: "";
   position: fixed;
@@ -30,7 +29,6 @@ body::before {
   100% { filter: hue-rotate(60deg);}
 }
 
-/* Deko-Kreise */
 .bg-circle {
   position: fixed;
   border-radius: 50%;
@@ -82,8 +80,6 @@ canvas {
   text-align: center;
   margin-bottom: 2px;
   text-shadow: 0 2px 12px rgba(0,157,255,0.10);
-  background: none;
-  padding: 0;
 }
 
 #coins {
@@ -118,7 +114,6 @@ canvas {
   transform: scale(0.97);
 }
 
-/* Shop-Overlay für Mobile */
 #shop {
   position: fixed;
   top: 0;
@@ -133,7 +128,6 @@ canvas {
   box-shadow: 0 10px 30px rgba(0,0,0,0.18);
   display: none;
   flex-direction: column;
-  gap: 0;
   justify-content: flex-start;
   align-items: center;
   z-index: 100;
@@ -214,54 +208,6 @@ canvas {
   border-radius: 6px;
   font-size: 0.75em;
 }
-
-/* Responsive Anpassung für Desktop */
-@media (min-width: 700px) {
-  #ui {
-    flex-direction: row;
-    justify-content: center;  
-    align-items: center;
-    width: auto;
-    top: 18px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255,255,255,0.92);
-    border-radius: 16px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.13);
-    padding: 10px 24px;
-    gap: 20px;
-  }
-  #score {
-    font-size: 2em;
-    margin-bottom: 0;
-    margin-right: 18px;
-  }
-  #coins {
-    font-size: 1.1em;
-    margin-bottom: 0;
-    margin-right: 18px;
-  }
-  #shopBtn {
-    width: auto;
-    max-width: none;
-    padding: 10px 24px;
-    margin: 0;
-  }
-  #shop {
-    position: absolute;
-    top: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 95vw !important;
-    max-width: 600px !important;
-    height: auto !important;
-    max-height: 70vh !important;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
-    padding: 20px;
-    background-color: transparent;
-  }
-}
   </style>
 </head>
 <body>
@@ -274,10 +220,7 @@ canvas {
     <button id="shopBtn">Shop</button>
   </div>
 
-  <div id="shop">
-    <!-- Wird dynamisch erstellt -->
-  </div>
-
+  <div id="shop"></div>
   <canvas id="gameCanvas"></canvas>
 
   <script>
@@ -317,11 +260,13 @@ canvas {
       Barcelona: 0,
       HSV: 250,
       TequilaSunrise: 250,
-      Lime: 100
-    
-
-
-
+      Lime: 100,
+      galaxy: 200,
+      sunset: 120,
+      matrix: 180,
+      candy: 100,
+      oceanwave: 130,
+      shadow: 160
     };
 
     const skins = {
@@ -336,19 +281,22 @@ canvas {
       aqua: ["#00ffff", "#40e0d0", "#5f9ea0"],
       cyberpunk:["#00FFFF","#FF1493","#000000","#8A2BE2","#FF4500"],
       tropicalpop:["#FF6347", "#FFD700", "#32CD32", "#1E90FF", "#FF69B4"],
-      lakers:["#552583", "#FDB927", "#ffffff", "#000000", "#9C27B0"],
-      Knicks:["#006BB6", "#F58426", "#FFFFFF","#006BB6", "#000000"],
-      RealMadrid:["#FFFFFF", "#ffd700", "#daa520", "#FFFFFF", "#ffd700"],
+      lakers:["#552583", "#FDB927", "#ffffff", "#000000"],
+      Knicks:["#006BB6", "#F58426", "#FFFFFF"],
+      RealMadrid:["#FFFFFF", "#ffd700", "#daa520"],
       Barcelona:["#832c00","#ae562d","#a75b34"],
       HSV:["#000000", "#FFFFFF", "#0000ff"],
       TequilaSunrise: ["#f7d308", "#f76c81", "#b63d7a", "#6e2595", "#232e92"],
-      Lime: ["#baffc9", "#ffffba", "#ffb3ba", "#bae1ff", "#baffc9"]
-   
-
+      Lime: ["#baffc9", "#ffffba", "#ffb3ba", "#bae1ff"],
+      galaxy: ["#0f0c29", "#302b63", "#24243e", "#e96443", "#904e95"],
+      sunset: ["#ff9966", "#ff5e62", "#f83600", "#fe8c00"],
+      matrix: ["#0f0", "#060", "#000"],
+      candy: ["#ff4b5c", "#ffb400", "#8ac926", "#1982c4", "#6a4c93"],
+      oceanwave: ["#00c6ff", "#0072ff", "#004e92", "#00f260"],
+      shadow: ["#111", "#333", "#000"]
     };
 
     const skinColors = Object.entries(skins);
-
     const scoreDiv = document.getElementById("score");
     const coinsDiv = document.getElementById("coins");
     const shopBtn = document.getElementById("shopBtn");
@@ -361,8 +309,11 @@ canvas {
 
     function drawBlock(b, y, color) {
       ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 15;
       ctx.fillRect(b.x, y, b.width, 30);
-      ctx.strokeStyle = "rgba(0,0,0,0.1)";
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(0,0,0,0.15)";
       ctx.strokeRect(b.x, y, b.width, 30);
     }
 
@@ -374,12 +325,10 @@ canvas {
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       cameraOffset += ((currentBlock.y - cameraOffset - canvas.height / 2 + 100) * 0.05);
-
       stack.forEach((b, i) => {
         const y = canvas.height - (b.y - cameraOffset);
         drawBlock(b, y, getBlockColor(i));
       });
-
       if (!gameOver) {
         const y = canvas.height - (currentBlock.y - cameraOffset);
         drawBlock(currentBlock, y, getBlockColor(score));
@@ -411,6 +360,13 @@ canvas {
       stack.push({ x: newX, y: currentBlock.y, width: newWidth });
       score++;
       coins++;
+
+      if (score % 10 === 0) coins += 10;
+      if (Math.abs(currentBlock.x - last.x) < 5) {
+        coins += 5;
+        scoreDiv.textContent = `Score: ${score} (+Perfect!)`;
+      }
+
       localStorage.setItem("coins", coins);
       updateUI();
 
@@ -423,16 +379,11 @@ canvas {
     }
 
     canvas.addEventListener("click", () => {
-      if (gameOver) {
-        resetGame();
-      } else {
-        placeBlock();
-      }
+      if (gameOver) resetGame();
+      else placeBlock();
     });
-
     canvas.addEventListener("touchstart", e => {
-      e.preventDefault();
-      canvas.click();
+      e.preventDefault(); canvas.click();
     }, { passive: false });
 
     function resetGame() {
@@ -447,7 +398,6 @@ canvas {
 
     function createShop() {
       shop.innerHTML = '';
-
       const closeDiv = document.createElement("div");
       closeDiv.id = "closeShop";
       const closeBtn = document.createElement("button");
@@ -466,12 +416,10 @@ canvas {
         div.classList.add("skin");
         div.style.background = colors.length > 1 ? `linear-gradient(45deg, ${colors.join(",")})` : colors[0];
         div.textContent = name;
-
         const price = skinPrices[name] ?? 50;
 
         if (!unlockedSkins.includes(name)) {
           div.classList.add("locked");
-
           const priceTag = document.createElement("div");
           priceTag.className = "price-tag";
           priceTag.textContent = `${price} Coins`;
@@ -497,7 +445,6 @@ canvas {
             createShop();
           });
         }
-
         shop.appendChild(div);
       });
     }
